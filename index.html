@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CompoundCalc</title>
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    :root{
+      --bg:#000; --card:#111; --accent:#1565c0; --muted:#888;
+      --success:#16a34a;
+    }
+    body{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial; background:var(--bg); margin:0; padding:24px; color:#fff;}
+    .container{max-width:960px;margin:0 auto;}
+    .card{background:var(--card); padding:18px; border-radius:10px; box-shadow:0 6px 18px rgba(13,23,34,0.5);}
+    h1{margin:0 0 8px;font-size:20px;}
+    p.lead{margin:0 0 16px;color:var(--muted);}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;}
+    label{display:block;font-size:13px;color:var(--muted); margin-bottom:6px;}
+    input[type="number"], input[type="text"], select{width:100%;padding:8px;border:1px solid #333;border-radius:8px;font-size:14px;background:#000;color:#fff;}
+    .row{display:flex;gap:8px;align-items:center;}
+    button{background:var(--accent);color:white;border:none;padding:10px 12px;border-radius:8px;font-weight:600;cursor:pointer;}
+    button.secondary{background:#1565c050;color:var(--accent);font-weight:600;border:1px solid rgba(21,101,192,0.3);}
+    button.ghost{background:transparent;border:1px solid #333;color:var(--muted);}
+    .controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+    table{width:100%;border-collapse:collapse;margin-top:12px;}
+    th,td{padding:8px;border-bottom:1px solid #333;text-align:right;font-feature-settings:"tnum";font-variant-numeric:tabular-nums;color:#fff;}
+    th{background:#111;text-align:right;color:var(--muted);font-size:13px;}
+    th.left, td.left{text-align:left;}
+    .result{margin-top:12px;font-size:16px;color:var(--success);font-weight:700;}
+    .small{font-size:13px;color:var(--muted);}
+    .footer{margin-top:12px;text-align:right;color:var(--muted);font-size:13px;}
+    @media (max-width:520px){th,td{font-size:13px;padding:6px}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>Compound Growth Calculator</h1>
+      <p class="lead">Enter a starting amount, choose a multiplier or percent per step, set steps, then Generate. You can export the table as CSV or copy it.</p>
+
+      <div class="grid" role="form" aria-label="Compound growth inputs">
+        <div>
+          <label for="start">Start amount</label>
+          <input id="start" type="number" step="0.01" value="100" min="0" />
+        </div>
+
+        <div>
+          <label for="mode">Rate input mode</label>
+          <select id="mode" aria-label="Rate input mode">
+            <option value="mult">Multiplier (e.g., 1.16)</option>
+            <option value="pct">Percent (e.g., 16 for 16%)</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="rate">Multiplier / Percent</label>
+          <input id="rate" type="number" step="0.0001" value="1.16" />
+          <div class="small" id="rate-hint">Using multiplier mode. To use 16%, set mode to Percent and enter 16.</div>
+        </div>
+
+        <div>
+          <label for="steps">Steps (n)</label>
+          <input id="steps" type="number" value="60" min="1" max="10000" />
+        </div>
+
+        <div>
+          <label for="decimals">Decimal places</label>
+          <input id="decimals" type="number" value="2" min="0" max="10" />
+        </div>
+
+        <div>
+          <label for="currency">Currency/Label</label>
+          <input id="currency" type="text" value="lei" />
+        </div>
+      </div>
+
+      <div class="controls" style="margin-top:14px;">
+        <button id="generate">Generate Table</button>
+        <button class="secondary" id="exportCsv">Export CSV</button>
+        <button class="secondary" id="copyTable">Copy CSV</button>
+        <button class="ghost" id="clear">Clear Table</button>
+      </div>
+
+      <div id="output" style="margin-top:14px;"></div>
+
+      <div class="footer">
+        Tip: Step 0 shows the starting amount. Step 1 is after the first multiplication.
+      </div>
+    </div>
+  </div>
+
+  <script src="service-worker.js"></script>
+  <script>
+  // All your original calculator JS goes here
+  // (keep exactly as in your current page)
+  </script>
+</body>
+</html>
