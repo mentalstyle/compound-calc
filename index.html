@@ -3,48 +3,89 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>CompoundCalc</title>
-  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#000000" id="metaThemeColor" />
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+  <title>Compound Growth Calculator — AMOLED Dark</title>
   <style>
     :root{
-      --bg:#000; --card:#111; --accent:#1565c0; --muted:#888;
+      /* Light mode variables (fallback) */
+      --bg:#f7f9fb;
+      --card:#fff;
+      --accent:#1565c0;
+      --muted:#6b7280;
+      --muted-2:#9aa0a6;
+      --text:#0f172a;
+      --surface-shadow:rgba(13,23,34,0.08);
+      --input-bg:#fff;
+      --border:#e6edf3;
       --success:#16a34a;
     }
-    body{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial; background:var(--bg); margin:0; padding:24px; color:#fff;}
+    /* True Black AMOLED dark theme (will be applied with .dark on body) */
+    .dark{
+      --bg:#000000;
+      --card:#000000;
+      --accent:#0ea5ff; /* bright accent that pops on black */
+      --muted:#9ca3af;
+      --muted-2:#6b7280;
+      --text:#e6eef8;
+      --surface-shadow: rgba(255,255,255,0.02);
+      --input-bg:#050505;
+      --border:rgba(255,255,255,0.06);
+      --success:#16a34a;
+    }
+    /* Base styles */
+    html,body{height:100%;}
+    body{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial; background:var(--bg); margin:0; padding:24px; color:var(--text); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
     .container{max-width:960px;margin:0 auto;}
-    .card{background:var(--card); padding:18px; border-radius:10px; box-shadow:0 6px 18px rgba(13,23,34,0.5);}
+    .card{background:var(--card); padding:18px; border-radius:10px; box-shadow:0 6px 18px var(--surface-shadow);}
     h1{margin:0 0 8px;font-size:20px;}
     p.lead{margin:0 0 16px;color:var(--muted);}
     .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;}
     label{display:block;font-size:13px;color:var(--muted); margin-bottom:6px;}
-    input[type="number"], input[type="text"], select{width:100%;padding:8px;border:1px solid #333;border-radius:8px;font-size:14px;background:#000;color:#fff;}
+    input[type="number"], input[type="text"], select{
+      width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--input-bg);color:var(--text); outline: none; box-sizing: border-box;
+    }
+    input:focus, select:focus{
+      box-shadow:0 0 0 4px rgba(14,165,255,0.06); border-color:var(--accent);
+    }
     .row{display:flex;gap:8px;align-items:center;}
     button{background:var(--accent);color:white;border:none;padding:10px 12px;border-radius:8px;font-weight:600;cursor:pointer;}
-    button.secondary{background:#1565c050;color:var(--accent);font-weight:600;border:1px solid rgba(21,101,192,0.3);}
-    button.ghost{background:transparent;border:1px solid #333;color:var(--muted);}
+    button.secondary{background:transparent;color:var(--accent);font-weight:600;border:1px solid rgba(14,165,255,0.12);}
+    button.ghost{background:transparent;border:1px solid var(--border);color:var(--muted);}
     .controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
-    table{width:100%;border-collapse:collapse;margin-top:12px;}
-    th,td{padding:8px;border-bottom:1px solid #333;text-align:right;font-feature-settings:"tnum";font-variant-numeric:tabular-nums;color:#fff;}
-    th{background:#111;text-align:right;color:var(--muted);font-size:13px;}
+    table{width:100%;border-collapse:collapse;margin-top:12px;background:transparent;}
+    th,td{padding:8px;border-bottom:1px solid var(--border);text-align:right;font-feature-settings:"tnum";font-variant-numeric:tabular-nums;color:var(--text);}
+    th{background:transparent;text-align:right;color:var(--muted);font-size:13px;}
     th.left, td.left{text-align:left;}
     .result{margin-top:12px;font-size:16px;color:var(--success);font-weight:700;}
     .small{font-size:13px;color:var(--muted);}
     .footer{margin-top:12px;text-align:right;color:var(--muted);font-size:13px;}
+    /* Theme toggle button layout */
+    .theme-row{display:flex;justify-content:flex-end;gap:8px;margin-bottom:8px;}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;font-size:13px;border:1px solid var(--border);background:var(--input-bg);}
     @media (max-width:520px){th,td{font-size:13px;padding:6px}}
+    /* Small responsive tweaks for very dark mode to avoid faint borders on AMOLED */
+    .dark table th, .dark table td{border-bottom:1px solid rgba(255,255,255,0.04);}
   </style>
 </head>
 <body>
   <div class="container">
+    <div class="theme-row">
+      <div class="pill" title="Theme">
+        <span class="small">Theme</span>
+        <button id="themeToggle" class="ghost" aria-pressed="true">AMOLED</button>
+      </div>
+    </div>
     <div class="card">
       <h1>Compound Growth Calculator</h1>
       <p class="lead">Enter a starting amount, choose a multiplier or percent per step, set steps, then Generate. You can export the table as CSV or copy it.</p>
-
       <div class="grid" role="form" aria-label="Compound growth inputs">
         <div>
           <label for="start">Start amount</label>
           <input id="start" type="number" step="0.01" value="100" min="0" />
         </div>
-
         <div>
           <label for="mode">Rate input mode</label>
           <select id="mode" aria-label="Rate input mode">
@@ -52,48 +93,231 @@
             <option value="pct">Percent (e.g., 16 for 16%)</option>
           </select>
         </div>
-
         <div>
           <label for="rate">Multiplier / Percent</label>
           <input id="rate" type="number" step="0.0001" value="1.16" />
           <div class="small" id="rate-hint">Using multiplier mode. To use 16%, set mode to Percent and enter 16.</div>
         </div>
-
         <div>
           <label for="steps">Steps (n)</label>
           <input id="steps" type="number" value="60" min="1" max="10000" />
         </div>
-
         <div>
           <label for="decimals">Decimal places</label>
           <input id="decimals" type="number" value="2" min="0" max="10" />
         </div>
-
         <div>
           <label for="currency">Currency/Label</label>
           <input id="currency" type="text" value="lei" />
         </div>
       </div>
-
       <div class="controls" style="margin-top:14px;">
         <button id="generate">Generate Table</button>
         <button class="secondary" id="exportCsv">Export CSV</button>
         <button class="secondary" id="copyTable">Copy CSV</button>
         <button class="ghost" id="clear">Clear Table</button>
       </div>
-
       <div id="output" style="margin-top:14px;"></div>
-
       <div class="footer">
         Tip: Step 0 shows the starting amount. Step 1 is after the first multiplication.
       </div>
     </div>
   </div>
-
-  <script src="service-worker.js"></script>
   <script>
-  // All your original calculator JS goes here
-  // (keep exactly as in your current page)
+    (function(){
+      const body = document.body;
+      const metaTheme = document.getElementById('metaThemeColor');
+      const themeToggle = document.getElementById('themeToggle');
+      // Apply dark AMOLED by default unless user explicitly chose otherwise
+      const saved = localStorage.getItem('cg_theme');
+      if(saved === null){
+        // default to dark (AMOLED true black)
+        body.classList.add('dark');
+        metaTheme.setAttribute('content','#000000');
+        themeToggle.setAttribute('aria-pressed','true');
+        themeToggle.textContent = 'AMOLED';
+      } else if(saved === 'dark'){
+        body.classList.add('dark');
+        metaTheme.setAttribute('content','#000000');
+        themeToggle.setAttribute('aria-pressed','true');
+        themeToggle.textContent = 'AMOLED';
+      } else {
+        body.classList.remove('dark');
+        metaTheme.setAttribute('content','#ffffff');
+        themeToggle.setAttribute('aria-pressed','false');
+        themeToggle.textContent = 'Light';
+      }
+      themeToggle.addEventListener('click', ()=>{
+        const isDark = body.classList.toggle('dark');
+        if(isDark){
+          localStorage.setItem('cg_theme','dark');
+          metaTheme.setAttribute('content','#000000');
+          themeToggle.setAttribute('aria-pressed','true');
+          themeToggle.textContent = 'AMOLED';
+        } else {
+          localStorage.setItem('cg_theme','light');
+          metaTheme.setAttribute('content','#ffffff');
+          themeToggle.setAttribute('aria-pressed','false');
+          themeToggle.textContent = 'Light';
+        }
+      });
+      const startEl = document.getElementById('start');
+      const modeEl = document.getElementById('mode');
+      const rateEl = document.getElementById('rate');
+      const stepsEl = document.getElementById('steps');
+      const decimalsEl = document.getElementById('decimals');
+      const currencyEl = document.getElementById('currency');
+      const generateBtn = document.getElementById('generate');
+      const exportBtn = document.getElementById('exportCsv');
+      const copyBtn = document.getElementById('copyTable');
+      const clearBtn = document.getElementById('clear');
+      const output = document.getElementById('output');
+      const rateHint = document.getElementById('rate-hint');
+      function formatNumber(n, decimals){
+        return Number(n).toLocaleString(undefined, {minimumFractionDigits: decimals, maximumFractionDigits: decimals});
+      }
+      function getMultiplier(){
+        const mode = modeEl.value;
+        const raw = parseFloat(rateEl.value);
+        if(isNaN(raw) || raw <= 0) return NaN;
+        if(mode === 'mult') return raw;
+        return 1 + (raw / 100);
+      }
+      function buildTable(start, mult, steps, decimals, currency){
+        const rows = [];
+        for(let n=0; n<=steps; n++){
+          const amt = start * Math.pow(mult, n);
+          rows.push({step: n, amountRaw: amt, amount: formatNumber(amt, decimals)});
+        }
+        return rows;
+      }
+      function renderTable(rows, currency){
+        if(!rows || rows.length === 0){
+          output.innerHTML = '';
+          return;
+        }
+        let html = '<div style="overflow:auto;"><table><thead><tr><th class="left">Step (n)</th><th>Amount</th></tr></thead><tbody>';
+        rows.forEach(r => {
+          html += `<tr><td class="left">${r.step}</td><td>${r.amount} ${currency ? currency : ''}</td></tr>`;
+        });
+        html += '</tbody></table></div>';
+        const final = rows[rows.length-1];
+        html += `<div class="result">Final (step ${final.step}): ${final.amount} ${currency ? currency : ''}</div>`;
+        output.innerHTML = html;
+      }
+      function tableToCSV(rows){
+        const header = ['Step (n)','Amount'];
+        const lines = [header.join(',')];
+        rows.forEach(r => {
+          lines.push(`${r.step},${r.amountRaw}`);
+        });
+        return lines.join('\n');
+      }
+      generateBtn.addEventListener('click', ()=>{
+        const start = parseFloat(startEl.value);
+        const steps = parseInt(stepsEl.value, 10);
+        const decimals = parseInt(decimalsEl.value, 10);
+        const currency = currencyEl.value.trim();
+        const multiplier = getMultiplier();
+        if(isNaN(start) || start < 0){
+          alert('Enter a valid start amount (>= 0).');
+          return;
+        }
+        if(isNaN(multiplier) || multiplier <= 0){
+          alert('Enter a valid rate or percent.');
+          return;
+        }
+        if(isNaN(steps) || steps < 1 || steps > 10000){
+          alert('Steps must be between 1 and 10000.');
+          return;
+        }
+        const rows = buildTable(start, multiplier, steps, decimals, currency);
+        renderTable(rows, currency);
+      });
+      exportBtn.addEventListener('click', ()=>{
+        const start = parseFloat(startEl.value);
+        const steps = parseInt(stepsEl.value, 10);
+        const decimals = parseInt(decimalsEl.value, 10);
+        const currency = currencyEl.value.trim();
+        const multiplier = getMultiplier();
+        if(isNaN(start) || isNaN(multiplier) || isNaN(steps)){
+          alert('Please fill inputs before exporting.');
+          return;
+        }
+        const rows = buildTable(start, multiplier, steps, decimals, currency);
+        const csv = tableToCSV(rows);
+        const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const safeCurrency = currency ? currency.replace(/[^a-z0-9_-]/ig,'') + '-' : '';
+        a.download = `${safeCurrency}compound-${start}-x${multiplier}-steps-${steps}.csv`;
+        a.href = url;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(()=>{
+          URL.revokeObjectURL(url);
+          a.remove();
+        }, 500);
+      });
+      copyBtn.addEventListener('click', async ()=>{
+        const start = parseFloat(startEl.value);
+        const steps = parseInt(stepsEl.value, 10);
+        const decimals = parseInt(decimalsEl.value, 10);
+        const multiplier = getMultiplier();
+        if(isNaN(start) || isNaN(multiplier) || isNaN(steps)){
+          alert('Please fill inputs before copying.');
+          return;
+        }
+        const rows = buildTable(start, multiplier, steps, decimals, currencyEl.value.trim());
+        const csv = tableToCSV(rows);
+        try {
+          await navigator.clipboard.writeText(csv);
+          copyBtn.textContent = 'Copied!';
+          setTimeout(()=> copyBtn.textContent = 'Copy CSV', 1200);
+        } catch(e){
+          alert('Copy failed. You can use Export CSV instead.');
+        }
+      });
+      clearBtn.addEventListener('click', ()=>{
+        output.innerHTML = '';
+      });
+      modeEl.addEventListener('change', ()=>{
+        if(modeEl.value === 'mult'){
+          rateEl.value = (parseFloat(rateEl.value) > 3 ? 1.16 : rateEl.value);
+          rateHint.textContent = 'Using multiplier mode. Enter numbers like 1.16 for +16% per step.';
+        } else {
+          const val = parseFloat(rateEl.value);
+          if(!isNaN(val) && val > 0 && val <= 10){
+            rateEl.value = val;
+          } else if(!isNaN(val) && val > 1){
+            rateEl.value = ((val - 1) * 100).toFixed(4);
+          }
+          rateHint.textContent = 'Using percent mode. Enter 16 for 16% per step (multiplier = 1 + percent/100).';
+        }
+      });
+      modeEl.dispatchEvent(new Event('change'));
+      document.querySelectorAll('input,select').forEach(el=>{
+        el.addEventListener('keydown', (e)=>{
+          if(e.key === 'Enter'){
+            e.preventDefault();
+            generateBtn.click();
+          }
+        });
+      });
+    })();
+  </script>
+  <script>
+    // Register service worker for PWA functionality
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js')
+          .then(function(registration) {
+            console.log('ServiceWorker registration successful');
+          }, function(err) {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+      });
+    }
   </script>
 </body>
 </html>
